@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:video_player/video_player.dart';
 import 'package:youtube_video_player/app_enums.dart';
+
+import 'player_widget/player_over_layout.dart';
 
 class VideoContainer extends StatefulWidget {
   const VideoContainer(
@@ -92,176 +96,37 @@ class _VideoContainerState extends State<VideoContainer> {
                       }
                     }
                   },
-                  child: AspectRatio(
-                    aspectRatio: videoController.value.aspectRatio,
-                    child: Stack(
-                      fit: isPortrait ? StackFit.expand : StackFit.loose,
-                      alignment: Alignment.center,
-                      children: [
-                        VideoPlayer(widget.controller),
-                        ClosedCaption(
-                          text: videoController.value.caption.text,
-                          textStyle: const TextStyle(color: Colors.white),
+                  child: Stack(
+                    fit: isPortrait ? StackFit.loose : StackFit.expand,
+                    alignment: Alignment.center,
+                    children: [
+                      AspectRatio(
+                        aspectRatio: videoController.value.aspectRatio,
+                        child: Stack(
+                          children: [
+                            VideoPlayer(widget.controller),
+                            ClosedCaption(
+                              text: videoController.value.caption.text,
+                              textStyle: const TextStyle(color: Colors.white),
+                            ),
+                            VideoOverLayout(
+                                isSwitchScreen: isSwitchScreen,
+                                videoController: videoController,
+                                widget: widget,
+                                isPortrait: isPortrait,
+                                formattedDuration: formattedDuration,
+                                formattedTotalDuration: formattedTotalDuration,
+                                examplePlaybackRates: _examplePlaybackRates,
+                                tapSide: tapSide),
+                          ],
                         ),
+                      ),
+                      // GestureDetector(
+                      //   onTap: () {
 
-                        AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 500),
-                            reverseDuration: const Duration(milliseconds: 200),
-                            child: isSwitchScreen
-                                ? ColoredBox(
-                                    color: Colors.black26,
-                                    child: Stack(
-                                      children: [
-                                        Align(
-                                          alignment: Alignment.center,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              videoController.value.isPlaying
-                                                  ? videoController.pause()
-                                                  : videoController.play();
-                                            },
-                                            child: Icon(
-                                              videoController.value.isPlaying
-                                                  ? Icons.pause
-                                                  : Icons.play_arrow,
-                                              color: Colors.white,
-                                              size: 100.0,
-                                              semanticLabel: 'Play',
-                                            ),
-                                          ),
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomCenter,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: VideoProgressIndicator(
-                                                widget.controller,
-                                                allowScrubbing: true),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(12.0),
-                                          child: Align(
-                                            alignment: Alignment.bottomRight,
-                                            child: GestureDetector(
-                                              onTap: isPortrait
-                                                  ? () {
-                                                      widget.onFullScreen();
-                                                    }
-                                                  : () {
-                                                      widget
-                                                          .disableFullScreen();
-                                                    },
-                                              child: isPortrait
-                                                  ? const Icon(
-                                                      Icons.fullscreen,
-                                                      color: Colors.white,
-                                                    )
-                                                  : const Icon(
-                                                      Icons.fullscreen_exit,
-                                                      color: Colors.white,
-                                                    ),
-                                            ),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(12),
-                                          child: Align(
-                                            alignment: Alignment.bottomLeft,
-                                            child: Text(
-                                              "$formattedDuration / $formattedTotalDuration",
-                                              style: const TextStyle(
-                                                  color: Colors.white),
-                                            ),
-                                          ),
-                                        ),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          children: [
-                                            IconButton(
-                                                onPressed: () {
-                                                  if (videoController
-                                                          .value.volume ==
-                                                      1.0) {
-                                                    videoController
-                                                        .setVolume(0.0);
-                                                  } else {
-                                                    videoController
-                                                        .setVolume(1.0);
-                                                  }
-                                                },
-                                                icon: Icon(
-                                                  videoController
-                                                              .value.volume ==
-                                                          1.0
-                                                      ? Icons.volume_up
-                                                      : Icons.volume_off,
-                                                  color: Colors.white,
-                                                )),
-                                            PopupMenuButton<double>(
-                                              initialValue: videoController
-                                                  .value.playbackSpeed,
-                                              tooltip: 'Playback speed',
-                                              onSelected: (value) {
-                                                videoController
-                                                    .setPlaybackSpeed(value);
-                                              },
-                                              itemBuilder:
-                                                  (BuildContext context) {
-                                                return <PopupMenuItem<double>>[
-                                                  for (final double speed
-                                                      in _examplePlaybackRates)
-                                                    PopupMenuItem<double>(
-                                                      value: speed,
-                                                      child: Text('${speed}x'),
-                                                    )
-                                                ];
-                                              },
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  vertical: 12,
-                                                  horizontal: 16,
-                                                ),
-                                                child: Text(
-                                                  '${videoController.value.playbackSpeed}x',
-                                                  style: const TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        if (tapSide == TappingSide.left)
-                                          const Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(
-                                              '- 10 seconds',
-                                              style: TextStyle(
-                                                  color: Colors.white),
-                                            ),
-                                          ),
-                                        if (tapSide == TappingSide.right)
-                                          const Align(
-                                            alignment: Alignment.centerRight,
-                                            child: Text(
-                                              '+ 10 seconds',
-                                              style: TextStyle(
-                                                  color: Colors.white),
-                                            ),
-                                          )
-                                      ],
-                                    ),
-                                  )
-                                : const SizedBox.shrink()),
-                        // GestureDetector(
-                        //   onTap: () {
-
-                        //   },
-                        // ),
-                      ],
-                    ),
+                      //   },
+                      // ),
+                    ],
                   ),
                 )
               : Container(
